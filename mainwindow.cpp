@@ -4,6 +4,7 @@
 #include <QFormLayout>
 #include <QPushButton>
 #include <QLineEdit>
+#include <QCheckBox>
 #include <QLabel>
 #include <QPair>
 
@@ -23,9 +24,10 @@ MainWindow::setup()
     QPushButton *load = this->ui->loadBtn;
     load->setText("Load");
 
-    form_meta.append(QPair<QString,QString>("Nom", "Doe"));
-    form_meta.append(QPair<QString, QString>("Team", "Venom"));
-    form_meta.append(QPair<QString, QString>("Field", "-100Kg"));
+    form_meta.append(QPair<QString,QString>("edit:Nom", "Doe"));
+    form_meta.append(QPair<QString, QString>("edit:Team", "Venom"));
+    form_meta.append(QPair<QString, QString>("edit:Field", "-100Kg"));
+    form_meta.append(QPair<QString, QString>("check:Present", "true"));
     connect(load, &QPushButton::released,
             this, &MainWindow::released);
 }
@@ -35,23 +37,40 @@ MainWindow::released()
 {
     //setup form:
     QFormLayout *form = this->ui->formLayout;
-    QLineEdit *input = nullptr;
+    QWidget *input = nullptr;
 
     input = new QLineEdit(this);
-    QString objName;
+    QStringList objNameType;
     for (auto& form_info: this->form_meta) {
-        objName = form_info.first + "Edit";
-        input = new QLineEdit(this);
-        input->setObjectName(objName);
-        form->addRow(form_info.first, input);
+        objNameType = form_info.first.split(":");
+        if (objNameType[0].compare("edit") == 0) {
+            qDebug() << "add a new edit widget";
+            input = new QLineEdit(this);
+        } else if (objNameType[0].compare("check") == 0) {
+            qDebug() << "add a nex chekbox xidget";
+            input = new QCheckBox(this);
+        } else {
+            qDebug() << "found an object of incomplete type";
+        }
+        input->setObjectName(objNameType[1]+objNameType[0]);
+        form->addRow(objNameType[1], input);
     }
 
     //from now simulate that we only have a reference to form;
     input = nullptr;
 
     for (auto& form_info: this->form_meta) {
-        input = MainWindow::findChild<QLineEdit *>(form_info.first + "Edit");
-        input->setText(form_info.second);
+        objNameType = form_info.first.split(":");
+
+        if (objNameType[0].compare("edit") == 0) {
+            QLineEdit *editInput = MainWindow::findChild<QLineEdit *>(objNameType[1]+objNameType[0]);
+            qDebug() << ((editInput != nullptr)? "found edit widget" : "edit widget not found");
+            editInput->setText(form_info.second);
+        } else if (objNameType[0].compare("check") == 0) {
+            QCheckBox *checkInput = MainWindow::findChild<QCheckBox *>(objNameType[1]+objNameType[0]);
+            qDebug() << ((checkInput != nullptr)? "found check widget" : "check widget not found");
+            checkInput->setCheckState((form_info.second.compare("true") == 0)? Qt::Checked : Qt::Unchecked);
+        }
     }
 
 }
