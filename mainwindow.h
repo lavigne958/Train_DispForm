@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QString>
+#include <QPair>
 
 namespace Ui {
 class MainWindow;
@@ -14,6 +16,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    QList<QPair<QString, QString>> form_meta;
 
 private:
     Ui::MainWindow *ui;
